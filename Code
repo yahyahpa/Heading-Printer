@@ -1,0 +1,70 @@
+
+#jlong
+
+
+#Choose a file to open
+def choosefile():
+    global file_open
+    #Attempt to open inputed file
+    try:
+        """Can take text files as well, as long as its in html format"""        
+        with open(input('Enter a valid htm or html file:\n'),'r') as file_open:
+            #list of each line of file, made global for other functions
+            global lines
+            lines = file_open.readlines()
+    except FileNotFoundError:
+        #Re-ask for file if file not found
+        print('File not found.\n')
+        choosefile()
+        return
+    except (IOError, OSError):
+        print('Invalid File\n')
+        choosefile()
+        return
+
+
+#scans the list of lines for headers and places found headers into list
+def head_lst_scan():
+    global lst_of_headers
+    #found headers will be put into a list
+    lst_of_headers =[]
+    for i in lines:
+        begin_of_header = i.find('<h')
+        #if begin_of_header finds a string '<h' check to make sure next character is digit
+        if (begin_of_header !=-1) and (i[begin_of_header+2].isdigit() == True):
+            #if true it is a header
+            #find end of section of header
+            end_of_header = i.find('</h', i.find('<h')+4)
+            #put headers into a list
+            lst_of_headers.append(i[begin_of_header:end_of_header])
+
+
+def writefile():
+    global lst_of_headers
+    global write_to
+    #choose file to write to
+    try:
+        with open(input('Enter name of a file to write to\n'),'a') as write_to:
+            #Find the digit following '<h' to determine the indentation count
+            for i in lst_of_headers:
+                indentation_count = int(i[(i.find('<h')+2)])-1
+                #indention * indentation_count determines the amount of indentations wrote
+                results = '    '*(indentation_count)+'*%s'%i[i.find('>')+1:]+'\n'
+                write_to.write(results)
+        print('Successfully output to requested file.\n ')
+        #start over
+        function_manager()
+    except (IOError, OSError):
+        #IF theres IO os OS error reask for a file to write to
+        print('Invalid file to write to.\n')
+        writefile()
+        return
+
+    
+#Manages order of functions calls
+def function_manager():
+    choosefile()
+    head_lst_scan()
+    writefile()
+    
+function_manager()
